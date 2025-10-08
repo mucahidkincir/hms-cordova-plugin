@@ -36,11 +36,11 @@ public class CoordinateConversionService extends CordovaBaseModule {
         double longitude = args.getInt(1);
         int coordType = args.getInt(2);
 
-        LonLat convertLonLat = com.huawei.hms.location.LocationUtils.convertCoord(latitude, longitude, coordType);
-        if (convertLonLat != null) {
-            cb.success(ObjectToJSON.convertLonLatToJSON(convertLonLat));
-        } else {
-            cb.error("convertLonLat is null");
-        }
+        // LonLat convertLonLat = com.huawei.hms.location.LocationUtils.convertCoord(latitude, longitude, coordType);
+        // if (convertLonLat != null) {
+        //     cb.success(ObjectToJSON.convertLonLatToJSON(convertLonLat));
+        // } else {
+        //     cb.error("convertLonLat is null");
+        // }
     }
 }

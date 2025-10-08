@@ -44,8 +44,8 @@ public class JSONToObject {
             .setMaxWaitTime((long) json.optDouble("maxWaitTime", locationRequest.getMaxWaitTime()))
             .setNeedAddress(json.optBoolean("needAddress", locationRequest.getNeedAddress()))
             .setLanguage(json.optString("language", locationRequest.getLanguage()))
-            .setCountryCode(json.optString("countryCode", locationRequest.getCountryCode()))
-            .setCoordinateType(json.optInt("coordinateType", locationRequest.getCoordinateType()));
+            .setCountryCode(json.optString("countryCode", locationRequest.getCountryCode()));
+            // .setCoordinateType(json.optInt("coordinateType", locationRequest.getCoordinateType()));
     }
 
     public static LocationSettingsRequest convertJSONToLocationSettingsRequest(JSONObject json) throws JSONException {
