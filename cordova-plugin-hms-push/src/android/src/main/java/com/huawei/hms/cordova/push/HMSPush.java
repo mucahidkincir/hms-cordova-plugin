@@ -48,7 +48,7 @@ import java.util.Map;
 public class HMSPush extends CordovaPlugin {
     private static final String KIT = "Push";
 
-    private static final String VERSION = "6.12.0.302";
+    private static final String VERSION = "6.12.0.305";
 
     private static CordovaInterface staticCordova;
 
