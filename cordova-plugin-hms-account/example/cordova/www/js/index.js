@@ -15,423 +15,518 @@
 */
 var accessToken;
 
+var ui = {
+    badge: null,
+    statusMessage: null,
+    resultOutput: null,
+    tokenState: null,
+    bitmap: null,
+    bitmapCaption: null
+};
+
+function cacheUiElements() {
+    ui.badge = document.getElementById('status_badge');
+    ui.statusMessage = document.getElementById('status_message');
+    ui.resultOutput = document.getElementById('result_output');
+    ui.tokenState = document.getElementById('token_state');
+    ui.bitmap = document.getElementById('img_bitmap');
+    ui.bitmapCaption = document.getElementById('img_caption');
+}
+
+function stringifyPayload(payload) {
+    if (typeof payload === 'string') {
+        return payload;
+    }
+
+    try {
+        return JSON.stringify(payload, null, 2);
+    } catch (err) {
+        return String(payload);
+    }
+}
+
+function setStatus(state, title, payload) {
+    if (!ui.badge || !ui.statusMessage || !ui.resultOutput) {
+        return;
+    }
+
+    ui.badge.className = 'status-chip' + (state ? ' ' + state : '');
+    ui.badge.textContent = title;
+    ui.statusMessage.textContent = typeof payload === 'string' ? payload : 'Last response updated below.';
+    ui.resultOutput.textContent = stringifyPayload(payload);
+}
+
+function setTokenState(value) {
+    if (!ui.tokenState) {
+        return;
+    }
+
+    ui.tokenState.textContent = value || 'Not available';
+}
+
+function setBitmapPreview(bitmapData, description) {
+    if (!ui.bitmap || !ui.bitmapCaption) {
+        return;
+    }
+
+    if (bitmapData) {
+        ui.bitmap.setAttribute('src', bitmapData);
+        ui.bitmapCaption.textContent = description || 'Bitmap successfully rendered.';
+        return;
+    }
+
+    ui.bitmap.setAttribute('src', '');
+    ui.bitmapCaption.textContent = description || '`Get Channel` çağrısı sonrasında ikon burada gösterilir.';
+}
+
+function showSuccess(action, payload) {
+    setStatus('success', action + ' success', payload);
+    alert(action + ' -> success : ' + stringifyPayload(payload));
+}
+
+function showError(action, error) {
+    setStatus('error', action + ' error', error);
+    alert(action + ' -> Error : ' + stringifyPayload(error));
+}
+
+function bindClick(id, handler) {
+    var element = document.getElementById(id);
+    if (!element) {
+        setStatus('error', 'Missing control', 'Element not found: ' + id);
+        return;
+    }
+
+    element.addEventListener('click', handler);
+}
+
 var app = {
 
     initialize: function () {
+        cacheUiElements();
+        setStatus('', 'Waiting for device', 'Cordova `deviceready` olayi bekleniyor.');
+        setTokenState('');
+        setBitmapPreview('');
         document.addEventListener('deviceready', this.onDeviceReady.bind(this), false);
     },
 
-    // 'pause', 'resume', etc.
     onDeviceReady: function () {
-        
-        document.getElementById('btn_sign_in_with_id_token').addEventListener('click', signInWithIdToken);
-        document.getElementById('btn_sign_in_with_authorization_code').addEventListener('click', signInAuthorizationCode);
-        document.getElementById('btn_sign_out').addEventListener('click', signOut);
-        document.getElementById('btn_cancel_authorization').addEventListener('click', cancelAuthorization);
-        document.getElementById('btn_silent_sign_in').addEventListener('click', silentSignIn);
-        document.getElementById('btn_huawei_id_auth_button').addEventListener('click', getHuaweiIdAuthButton);
-        document.getElementById('btn_account_sign_in_with_id_token').addEventListener('click', accountSignInWithIdToken);
-        document.getElementById('btn_account_sign_out').addEventListener('click', accountSignOut);
-        document.getElementById('btn_account_cancel_authorization').addEventListener('click', accountCancelAuthorization);
-        document.getElementById('btn_account_silent_sign_in').addEventListener('click', accountSilentSignIn);
-        document.getElementById('btn_get_channel').addEventListener('click', getChannel);
-        document.getElementById('btn_independent_sign_in').addEventListener('click', getIndependentSignIn);
-        document.getElementById('btn_account_contain_scopes').addEventListener('click', containScopes);
-        document.getElementById('btn_auth_result').addEventListener('click', getAuthResult);
-        document.getElementById('btn_auth_result_with_scopes').addEventListener('click', getAuthResultWithScopes);
-        document.getElementById('btn_add_auth_scopes').addEventListener('click', addAuthScopes);
-
-        document.getElementById('btn_hwid_contain_scopes').addEventListener('click', hwidContainScopes);
-        document.getElementById('btn_hwid_auth_result').addEventListener('click', hwidGetAuthResult);
-        document.getElementById('btn_hwid_auth_result_with_scopes').addEventListener('click', hwidGetAuthResultWithScopes);
-        document.getElementById('btn_hwid_add_auth_scopes').addEventListener('click', hwidAddAuthScopes);
-
-        document.getElementById('btn_request_union_id').addEventListener('click', requestUnionId);
-        document.getElementById('btn_request_access_token').addEventListener('click', requestAccessToken);
-        document.getElementById('btn_delete_auth_info').addEventListener('click', deleteAuthInfo);
-
-        document.getElementById('btn_build_network_url').addEventListener('click', buildNetworkUrl);
-        document.getElementById('btn_build_network_cookie').addEventListener('click', buildNetworkCookie);
-
-        document.getElementById('btn_start_consent').addEventListener('click', startConsent);
-        document.getElementById('btn_sms_verification_code').addEventListener('click', smsVerificationCode);
-        document.getElementById('btn_obtain_hash_code').addEventListener('click', obtainHashCode);
-
+        bindClick('btn_sign_in_with_id_token', signInWithIdToken);
+        bindClick('btn_sign_in_with_authorization_code', signInAuthorizationCode);
+        bindClick('btn_sign_out', signOut);
+        bindClick('btn_cancel_authorization', cancelAuthorization);
+        bindClick('btn_silent_sign_in', silentSignIn);
+        bindClick('btn_huawei_id_auth_button', getHuaweiIdAuthButton);
+        bindClick('btn_account_sign_in_with_id_token', accountSignInWithIdToken);
+        bindClick('btn_account_sign_out', accountSignOut);
+        bindClick('btn_account_cancel_authorization', accountCancelAuthorization);
+        bindClick('btn_account_silent_sign_in', accountSilentSignIn);
+        bindClick('btn_get_channel', getChannel);
+        bindClick('btn_independent_sign_in', getIndependentSignIn);
+        bindClick('btn_account_contain_scopes', containScopes);
+        bindClick('btn_auth_result', getAuthResult);
+        bindClick('btn_auth_result_with_scopes', getAuthResultWithScopes);
+        bindClick('btn_add_auth_scopes', addAuthScopes);
+        bindClick('btn_hwid_contain_scopes', hwidContainScopes);
+        bindClick('btn_hwid_auth_result', hwidGetAuthResult);
+        bindClick('btn_hwid_auth_result_with_scopes', hwidGetAuthResultWithScopes);
+        bindClick('btn_hwid_add_auth_scopes', hwidAddAuthScopes);
+        bindClick('btn_request_union_id', requestUnionId);
+        bindClick('btn_request_access_token', requestAccessToken);
+        bindClick('btn_delete_auth_info', deleteAuthInfo);
+        bindClick('btn_build_network_url', buildNetworkUrl);
+        bindClick('btn_build_network_cookie', buildNetworkCookie);
+        bindClick('btn_start_consent', startConsent);
+        bindClick('btn_sms_verification_code', smsVerificationCode);
+        bindClick('btn_obtain_hash_code', obtainHashCode);
+        setStatus('success', 'Device ready', 'Tum HMS butonlari kullanima hazir.');
     }
 
 };
 
 async function accountSignInWithIdToken() {
-    const signInParameters = {
-        authRequestOption: [HMSCommonTypes.AuthRequestOption.SCOPE_ID_TOKEN, HMSCommonTypes.AuthRequestOption.SCOPE_ACCESS_TOKEN,HMSCommonTypes.AuthRequestOption.SCOPE_CARRIER_ID],
+    var signInParameters = {
+        authRequestOption: [
+            HMSCommonTypes.AuthRequestOption.SCOPE_ID_TOKEN,
+            HMSCommonTypes.AuthRequestOption.SCOPE_ACCESS_TOKEN,
+            HMSCommonTypes.AuthRequestOption.SCOPE_CARRIER_ID
+        ],
         authParam: HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM,
         authIdTokenSignAlg: HMSCommonTypes.AuthIdTokenSignAlg.PS256
-    }
-    const packageName = HMSCommonTypes.PackageName.ACCOUNT;
+    };
+    var packageName = HMSCommonTypes.PackageName.ACCOUNT;
 
     try {
-        const res = await HMSAccountAuthService.signIn(signInParameters,packageName);
+        var res = await HMSAccountAuthService.signIn(signInParameters, packageName);
         accessToken = res.accessToken;
-        alert(JSON.stringify(res));
+        setTokenState(accessToken);
+        showSuccess('accountSignInWithIdToken', res);
     } catch (ex) {
-        alert(JSON.stringify(ex));
+        showError('accountSignInWithIdToken', ex);
     }
-
 }
 
 async function accountSignOut() {
     try {
         await HMSAccountAuthService.signOut();
-        alert("signOut -> success");
+        accessToken = null;
+        setTokenState('');
+        showSuccess('accountSignOut', 'Signed out.');
     } catch (ex) {
-        alert('signOut -> Error : ' + JSON.stringify(ex));
+        showError('accountSignOut', ex);
     }
 }
 
 async function accountCancelAuthorization() {
-
     try {
         await HMSAccountAuthService.cancelAuthorization();
-        alert("cancelAuthorization -> success");
+        showSuccess('accountCancelAuthorization', 'Authorization cancelled.');
     } catch (ex) {
-        alert('cancelAuthorization -> Error : ' + JSON.stringify(ex));
+        showError('accountCancelAuthorization', ex);
     }
 }
 
 async function accountSilentSignIn() {
     try {
-        const authParam = HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM;
-        const packageName = HMSCommonTypes.PackageName.ACCOUNT;
-        const res = await HMSAccountAuthService.silentSignIn(authParam,packageName);
-        alert("silentSignIn -> success :" + JSON.stringify(res));
+        var authParam = HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM;
+        var packageName = HMSCommonTypes.PackageName.ACCOUNT;
+        var res = await HMSAccountAuthService.silentSignIn(authParam, packageName);
+        accessToken = res.accessToken || accessToken;
+        setTokenState(accessToken);
+        showSuccess('accountSilentSignIn', res);
     } catch (ex) {
-        alert('silentSignIn -> Error : ' + JSON.stringify(ex));
+        showError('accountSilentSignIn', ex);
     }
 }
 
 async function getChannel() {
     try {
-        const res = await HMSAccountAuthService.getChannel();
-        alert("getChannel -> success :" + JSON.stringify(res.description));
-        const bitmapData = "data:image/png;base64," + res.icon;
-        document.getElementById('img_bitmap').setAttribute('src', bitmapData);
-
+        var res = await HMSAccountAuthService.getChannel();
+        var bitmapData = 'data:image/png;base64,' + res.icon;
+        setBitmapPreview(bitmapData, res.description || 'Channel icon rendered from HMS response.');
+        showSuccess('getChannel', res);
     } catch (ex) {
-        alert('getChannel -> Error : ' + JSON.stringify(ex));
+        setBitmapPreview('', 'Channel icon could not be loaded.');
+        showError('getChannel', ex);
     }
 }
 
 async function getIndependentSignIn() {
     try {
-        const res = await HMSAccountAuthService.getIndependentSignIn(accessToken);
-        alert("getIndependentSignIn -> success :" + JSON.stringify(res));
+        var res = await HMSAccountAuthService.getIndependentSignIn(accessToken);
+        showSuccess('getIndependentSignIn', res);
     } catch (ex) {
-        alert("getIndependentSignIn -> Error : " + JSON.stringify(ex));
+        showError('getIndependentSignIn', ex);
     }
 }
 
-
 async function signInWithIdToken() {
-    const signInParameters = {
-        authRequestOption: [HMSCommonTypes.AuthRequestOption.SCOPE_ID_TOKEN, HMSCommonTypes.AuthRequestOption.SCOPE_ACCESS_TOKEN],
+    var signInParameters = {
+        authRequestOption: [
+            HMSCommonTypes.AuthRequestOption.SCOPE_ID_TOKEN,
+            HMSCommonTypes.AuthRequestOption.SCOPE_ACCESS_TOKEN
+        ],
         authParam: HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM
+    };
+    var packageName = HMSCommonTypes.PackageName.HWID;
 
-    }
-    const packageName = HMSCommonTypes.PackageName.HWID;
     try {
-        const res = await HMSAccount.signIn(signInParameters,packageName);
-        alert(JSON.stringify(res));
+        var res = await HMSAccount.signIn(signInParameters, packageName);
+        accessToken = res.accessToken || accessToken;
+        setTokenState(accessToken);
+        showSuccess('signInWithIdToken', res);
     } catch (ex) {
-        alert(JSON.stringify(ex));
+        showError('signInWithIdToken', ex);
     }
-
 }
 
 async function signInAuthorizationCode() {
-    const signInWithAuthCode = {
+    var signInWithAuthCode = {
         authRequestOption: [HMSCommonTypes.AuthRequestOption.SCOPE_AUTHORIZATION_CODE],
         authParam: HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM,
         authScopeList: [HMSCommonTypes.AuthScopeList.EMAIL, HMSCommonTypes.AuthScopeList.PROFILE]
-    }
-    const packageName = HMSCommonTypes.PackageName.HWID;
+    };
+    var packageName = HMSCommonTypes.PackageName.HWID;
 
     try {
-        const res = await HMSAccount.signIn(signInWithAuthCode,packageName);
-        alert(JSON.stringify(res));
+        var res = await HMSAccount.signIn(signInWithAuthCode, packageName);
+        showSuccess('signInAuthorizationCode', res);
     } catch (ex) {
-        alert(JSON.stringify(ex));
+        showError('signInAuthorizationCode', ex);
     }
 }
 
 async function signOut() {
     try {
         await HMSAccount.signOut();
-        alert("signOut -> success");
+        accessToken = null;
+        setTokenState('');
+        showSuccess('signOut', 'Signed out.');
     } catch (ex) {
-        alert('signOut -> Error : ' + JSON.stringify(ex));
+        showError('signOut', ex);
     }
 }
 
 async function cancelAuthorization() {
-
     try {
         await HMSAccount.cancelAuthorization();
-        alert("cancelAuthorization -> success");
+        showSuccess('cancelAuthorization', 'Authorization cancelled.');
     } catch (ex) {
-        alert('cancelAuthorization -> Error : ' + JSON.stringify(ex));
+        showError('cancelAuthorization', ex);
     }
 }
 
 async function silentSignIn() {
     try {
-        const authParam = HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM;
-        const packageName = HMSCommonTypes.PackageName.HWID;
-        const res = await HMSAccount.silentSignIn(authParam,packageName);
-        alert("silentSignIn -> success :" + JSON.stringify(res));
+        var authParam = HMSCommonTypes.AuthParams.DEFAULT_AUTH_REQUEST_PARAM;
+        var packageName = HMSCommonTypes.PackageName.HWID;
+        var res = await HMSAccount.silentSignIn(authParam, packageName);
+        accessToken = res.accessToken || accessToken;
+        setTokenState(accessToken);
+        showSuccess('silentSignIn', res);
     } catch (ex) {
-        alert('silentSignIn -> Error : ' + JSON.stringify(ex));
+        showError('silentSignIn', ex);
     }
 }
 
 function getHuaweiIdAuthButton() {
+    var edittedButton = 'btn_auth_button';
 
-    const edittedButton = "btn_auth_button";
-
-    HMSHuaweiIdAuthButton.getHuaweiIdAuthButton(edittedButton,
+    HMSHuaweiIdAuthButton.getHuaweiIdAuthButton(
+        edittedButton,
         HMSHuaweiIdAuthButton.Theme.THEME_FULL_TITLE,
         HMSHuaweiIdAuthButton.ColorPolicy.COLOR_POLICY_RED,
-        HMSHuaweiIdAuthButton.CornerRadius.CORNER_RADIUS_LARGE);
+        HMSHuaweiIdAuthButton.CornerRadius.CORNER_RADIUS_LARGE
+    );
+    setStatus('success', 'HuaweiIdAuthButton ready', 'Native Huawei sign-in button rendered below the HMSAccount card.');
+    alert('getHuaweiIdAuthButton -> success');
 }
 
 async function containScopes() {
-    const authAccount = {
-        openId: "myOpenId",
-        uid: "myUid",
-        photoUriString: "myPhotoUrl",
-        displayName: "myDisplayName",
-        accessToken: "myAccessToken",
-        serviceCountryCode: "myServiceCountryCode",
+    var authAccount = {
+        openId: 'myOpenId',
+        uid: 'myUid',
+        photoUriString: 'myPhotoUrl',
+        displayName: 'myDisplayName',
+        accessToken: 'myAccessToken',
+        serviceCountryCode: 'myServiceCountryCode',
         gender: 0,
         status: 2,
         carrierId: 0,
-        unionId: "myUnionId",
-        serverAuthCode: "myServerAuthCode",
-        countryCode: "myCountryCode",
-        grantedScopes: [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE, HMSCommonTypes.AuthScopeList.EMAIL],
+        unionId: 'myUnionId',
+        serverAuthCode: 'myServerAuthCode',
+        countryCode: 'myCountryCode',
+        grantedScopes: [
+            HMSCommonTypes.AuthScopeList.OPENID,
+            HMSCommonTypes.AuthScopeList.PROFILE,
+            HMSCommonTypes.AuthScopeList.EMAIL
+        ]
+    };
 
-    }
-
-    const authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
-    const packageName = HMSCommonTypes.PackageName.ACCOUNT;
+    var authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
+    var packageName = HMSCommonTypes.PackageName.ACCOUNT;
 
     try {
-        const res = await HMSAccountAuthManager.containScopes(authAccount, authScopeList,packageName);
-        alert("containScopes-> success: " + JSON.stringify(res))
+        var res = await HMSAccountAuthManager.containScopes(authAccount, authScopeList, packageName);
+        showSuccess('containScopes', res);
     } catch (ex) {
-        alert('containScopes -> Error : ' + JSON.stringify(ex));
+        showError('containScopes', ex);
     }
-
 }
 
 async function getAuthResult() {
     try {
-        const packageName = HMSCommonTypes.PackageName.ACCOUNT;
-        const res = await HMSAccountAuthManager.getAuthResult(packageName);
-        alert("getAuthResult-> success " + JSON.stringify(res));
+        var packageName = HMSCommonTypes.PackageName.ACCOUNT;
+        var res = await HMSAccountAuthManager.getAuthResult(packageName);
+        showSuccess('getAuthResult', res);
     } catch (ex) {
-        alert('getAuthResult -> Error : ' + JSON.stringify(ex));
+        showError('getAuthResult', ex);
     }
 }
 
 async function getAuthResultWithScopes() {
-    const authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
-    const packageName = HMSCommonTypes.PackageName.ACCOUNT;
+    var authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
+    var packageName = HMSCommonTypes.PackageName.ACCOUNT;
 
     try {
-        const res = await HMSAccountAuthManager.getAuthResultWithScope(authScopeList,packageName);
-        alert("getAuthResultWithScope -> success: " + JSON.stringify(res))
+        var res = await HMSAccountAuthManager.getAuthResultWithScope(authScopeList, packageName);
+        showSuccess('getAuthResultWithScope', res);
     } catch (ex) {
-        alert('getAuthResultWithScope -> Error : ' + JSON.stringify(ex));
+        showError('getAuthResultWithScope', ex);
     }
 }
 
 async function addAuthScopes() {
+    var authScopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
+    var packageName = HMSCommonTypes.PackageName.ACCOUNT;
 
-    const authScopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
-    const packageName = HMSCommonTypes.PackageName.ACCOUNT;
     try {
-        await HMSAccountAuthManager.addAuthScopes(8888, authScopeList,packageName);
-        alert("addAuthScopes -> success")
+        await HMSAccountAuthManager.addAuthScopes(8888, authScopeList, packageName);
+        showSuccess('addAuthScopes', 'Additional scopes requested.');
     } catch (ex) {
-        alert('addAuthScopes -> Error : ' + JSON.stringify(ex));
+        showError('addAuthScopes', ex);
     }
 }
 
 async function hwidContainScopes() {
-    const authAccount = {
-        openId: "myOpenId",
-        uid: "myUid",
-        photoUriString: "myPhotoUrl",
-        displayName: "myDisplayName",
-        accessToken: "myAccessToken",
-        serviceCountryCode: "myServiceCountryCode",
+    var authAccount = {
+        openId: 'myOpenId',
+        uid: 'myUid',
+        photoUriString: 'myPhotoUrl',
+        displayName: 'myDisplayName',
+        accessToken: 'myAccessToken',
+        serviceCountryCode: 'myServiceCountryCode',
         gender: 0,
         status: 2,
         carrierId: 0,
-        unionId: "myUnionId",
-        serverAuthCode: "myServerAuthCode",
-        countryCode: "myCountryCode",
-        grantedScopes: [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE, HMSCommonTypes.AuthScopeList.EMAIL],
+        unionId: 'myUnionId',
+        serverAuthCode: 'myServerAuthCode',
+        countryCode: 'myCountryCode',
+        grantedScopes: [
+            HMSCommonTypes.AuthScopeList.OPENID,
+            HMSCommonTypes.AuthScopeList.PROFILE,
+            HMSCommonTypes.AuthScopeList.EMAIL
+        ]
+    };
 
-    }
-
-    const authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
-    const packageName = HMSCommonTypes.PackageName.HWID;
+    var authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
+    var packageName = HMSCommonTypes.PackageName.HWID;
 
     try {
-        const res = await HMSHuaweiIdAuthManager.containScopes(authAccount, authScopeList,packageName);
-        alert("containScopes-> success: " + JSON.stringify(res))
+        var res = await HMSHuaweiIdAuthManager.containScopes(authAccount, authScopeList, packageName);
+        showSuccess('hwidContainScopes', res);
     } catch (ex) {
-        alert('containScopes -> Error : ' + JSON.stringify(ex));
+        showError('hwidContainScopes', ex);
     }
-
 }
 
 async function hwidGetAuthResult() {
     try {
-        const packageName = HMSCommonTypes.PackageName.HWID;
-        const res = await HMSHuaweiIdAuthManager.getAuthResult(packageName);
-        alert("getAuthResult-> success " + JSON.stringify(res));
+        var packageName = HMSCommonTypes.PackageName.HWID;
+        var res = await HMSHuaweiIdAuthManager.getAuthResult(packageName);
+        showSuccess('hwidGetAuthResult', res);
     } catch (ex) {
-        alert('getAuthResult -> Error : ' + JSON.stringify(ex));
+        showError('hwidGetAuthResult', ex);
     }
 }
 
 async function hwidGetAuthResultWithScopes() {
-    const authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
-    const packageName = HMSCommonTypes.PackageName.HWID;
+    var authScopeList = [HMSCommonTypes.AuthScopeList.OPENID, HMSCommonTypes.AuthScopeList.PROFILE];
+    var packageName = HMSCommonTypes.PackageName.HWID;
 
     try {
-        const res = await HMSHuaweiIdAuthManager.getAuthResultWithScope(authScopeList,packageName);
-        alert("getAuthResultWithScope -> success: " + JSON.stringify(res))
+        var res = await HMSHuaweiIdAuthManager.getAuthResultWithScope(authScopeList, packageName);
+        showSuccess('hwidGetAuthResultWithScope', res);
     } catch (ex) {
-        alert('getAuthResultWithScope -> Error : ' + JSON.stringify(ex));
+        showError('hwidGetAuthResultWithScope', ex);
     }
 }
 
 async function hwidAddAuthScopes() {
+    var authScopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
+    var packageName = HMSCommonTypes.PackageName.HWID;
 
-    const authScopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
-    const packageName = HMSCommonTypes.PackageName.HWID;
     try {
-        await HMSHuaweiIdAuthManager.addAuthScopes(8888, authScopeList,packageName);
-        alert("addAuthScopes -> success")
+        await HMSHuaweiIdAuthManager.addAuthScopes(8888, authScopeList, packageName);
+        showSuccess('hwidAddAuthScopes', 'Additional scopes requested.');
     } catch (ex) {
-        alert('addAuthScopes -> Error : ' + JSON.stringify(ex));
+        showError('hwidAddAuthScopes', ex);
     }
 }
 
 async function deleteAuthInfo() {
     try {
-        const res = await HMSHuaweiIdAuthTool.deleteAuthInfo("accessTokenData");
-        alert("deleteAuthInfo -> success " + JSON.stringify(res));
+        var res = await HMSHuaweiIdAuthTool.deleteAuthInfo('accessTokenData');
+        showSuccess('deleteAuthInfo', res);
     } catch (ex) {
-        alert('deleteAuthInfo -> Error : ' + JSON.stringify(ex));
+        showError('deleteAuthInfo', ex);
     }
 }
 
 async function requestUnionId() {
     try {
-        const res = await HMSHuaweiIdAuthTool.requestUnionId("test@test.com");
-        alert("requestUnionId -> success " + JSON.stringify(res));
+        var res = await HMSHuaweiIdAuthTool.requestUnionId('test@test.com');
+        showSuccess('requestUnionId', res);
     } catch (ex) {
-        alert('requestUnionId -> Error : ' + JSON.stringify(ex));
+        showError('requestUnionId', ex);
     }
 }
 
 async function requestAccessToken() {
+    var account = {
+        type: 'com.huawei.hwid',
+        name: 'test@test.com'
+    };
 
-    const account =
-    {
-        "type": "com.huawei.hwid",
-        "name": "test@test.com"
-    }
-
-    const scopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
+    var scopeList = [HMSCommonTypes.AuthScopeList.EMAIL];
 
     try {
-        const res = await HMSHuaweiIdAuthTool.requestAccessToken(account, scopeList);
-        alert("requestAccessToken -> success " + JSON.stringify(res));
+        var res = await HMSHuaweiIdAuthTool.requestAccessToken(account, scopeList);
+        showSuccess('requestAccessToken', res);
     } catch (ex) {
-        alert('requestAccessToken -> Error : ' + JSON.stringify(ex));
+        showError('requestAccessToken', ex);
     }
-    
 }
 
 async function buildNetworkUrl() {
-
-    const domainInfo = {
-        "domain": "www.demo.com",
-        "isUseHttps": true
-    }
-
-    try {
-        const res = await HMSNetworkTool.buildNetworkURL(domainInfo);
-        console.log(JSON.stringify(res));
-        alert('buildNetworkURL -> success :' + JSON.stringify(res));
-    } catch (ex) {
-        alert('buildNetworkURL -> Error : ' + JSON.stringify(ex));
-    }
-}
-
-
-async function buildNetworkCookie() {
-
-    const cookieInfo = {
-        "cookieName": "hello",
-        "cookieValue": "world",
-        "domain": "www.demo.com",
-        "path": "/demo",
-        "isHttpOnly": true,
-        "isSecure": true,
-        "maxAge": 10
+    var domainInfo = {
+        domain: 'www.demo.com',
+        isUseHttps: true
     };
 
     try {
-        const res = await HMSNetworkTool.buildNetworkCookie(cookieInfo);
+        var res = await HMSNetworkTool.buildNetworkURL(domainInfo);
         console.log(JSON.stringify(res));
-        alert('buildNetworkCookie -> success :' + JSON.stringify(res));
+        showSuccess('buildNetworkURL', res);
     } catch (ex) {
-        alert('buildNetworkCookie -> Error : ' + JSON.stringify(ex));
+        showError('buildNetworkURL', ex);
+    }
+}
+
+async function buildNetworkCookie() {
+    var cookieInfo = {
+        cookieName: 'hello',
+        cookieValue: 'world',
+        domain: 'www.demo.com',
+        path: '/demo',
+        isHttpOnly: true,
+        isSecure: true,
+        maxAge: 10
+    };
+
+    try {
+        var res = await HMSNetworkTool.buildNetworkCookie(cookieInfo);
+        console.log(JSON.stringify(res));
+        showSuccess('buildNetworkCookie', res);
+    } catch (ex) {
+        showError('buildNetworkCookie', ex);
     }
 }
 
 async function obtainHashCode() {
     try {
-        const res = await HMSReadSMSManager.obtainHashCode();
-        alert('hashCode -> success :' + JSON.stringify(res));
+        var res = await HMSReadSMSManager.obtainHashCode();
+        showSuccess('obtainHashCode', res);
     } catch (ex) {
-        alert('hashCode -> Error : ' + JSON.stringify(ex));
+        showError('obtainHashCode', ex);
     }
 }
 
 async function startConsent() {
     try {
-        const res = await HMSReadSMSManager.startConsent("+90...");
-        alert("startConsent -> success :" + JSON.stringify(res));
+        var res = await HMSReadSMSManager.startConsent('+90...');
+        showSuccess('startConsent', res);
     } catch (ex) {
-        alert('startConsent -> Error : ' + JSON.stringify(ex));
+        showError('startConsent', ex);
     }
 }
 
 async function smsVerificationCode() {
     try {
-        const res = await HMSReadSMSManager.smsVerificationCode();
-        alert("smsVerificationCode -> success :" + JSON.stringify(res));
+        var res = await HMSReadSMSManager.smsVerificationCode();
+        showSuccess('smsVerificationCode', res);
     } catch (ex) {
-        alert('smsVerificationCode -> Error : ' + JSON.stringify(ex));
+        showError('smsVerificationCode', ex);
     }
 }
-
 
 app.initialize();
